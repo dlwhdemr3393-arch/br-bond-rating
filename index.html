@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>브라질 국채 투자 등급 산출기 | Brazil Bond Investment Grade Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                        },
+                        navy: {
+                            800: '#0f172a',
+                            900: '#0b0f19',
+                            950: '#05070d'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans KR', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Financial Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+        }
+        
+        /* Custom range slider styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            border-radius: 9999px;
+            background: #334155;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+            transition: all 0.15s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #7dd3fc;
+        }
+
+        /* Circular Gauge Gradient SVG Animation */
+        .gauge-circle {
+            transition: stroke-dashoffset 0.8s ease-in-out, stroke 0.5s ease;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Glassmorphism card effect */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Glow effects */
+        .glow-green {
+            box-shadow: 0 0 25px -5px rgba(34, 197, 94, 0.3);
+        }
+        .glow-amber {
+            box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.3);
+        }
+        .glow-red {
+            box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-sky-500 selection:text-white">
+
+    <!-- Top Header -->
+    <header class="border-b border-slate-800 bg-navy-900/80 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-sky-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid font-bold text-white text-lg">B</i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                        브라질 국채 투자 등급 산출기
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Brazil Bond Investment Grade Calculator</p>
+                </div>
+            </div>
+
+            <!-- Investing.com External Quick Links -->
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+                <span class="text-slate-400 text-xs font-medium mr-1 hidden lg:inline-block">
+                    <i class="fa-solid fa-arrow-trend-up text-emerald-400 mr-1"></i>실시간 시세 참고 (Investing.com):
+                </span>
+                <a href="https://kr.investing.com/rates-bonds/brazil-10-year-bond-yield" target="_blank" rel="noopener noreferrer" 
+                   class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/60 transition duration-150 group">
+                    <i class="fa-solid fa-chart-line text-emerald-400 group-hover:scale-110 transition-transform"></i>
+                    <span>브라질 10년물 금리</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500 group-hover:text-slate-300"></i>
+                </a>
+                <a href="https://kr.investing.com/currencies/krw-brl" target="_blank" rel="noopener noreferrer" 
+                   class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/60 transition duration-150 group">
+                    <i class="fa-solid fa-won-sign text-sky-400 group-hover:scale-110 transition-transform"></i>
+                    <span>KRW/BRL</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500 group-hover:text-slate-300"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow">
+
+        <!-- Top Banner / Summary Notice -->
+        <div class="mb-8 p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800/80 to-slate-900 border border-slate-700/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                    <i class="fa-solid fa-circle-info text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-200">실시간 맞춤형 국채 투자 가이드라인</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">2대 핵심 지표(브라질 10년물 금리 50%, KRW/BRL 환율 50%)를 반영하여 종합 투자 등급을 산출합니다.</p>
+                </div>
+            </div>
+            
+            <!-- Quick Actions: Real-time Fetch & Preset Buttons -->
+            <div class="flex flex-wrap items-center gap-2 self-end md:self-center">
+                <button id="fetchLiveBtn" onclick="fetchLiveMarketData()" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-sky-600 hover:bg-sky-500 text-white shadow-lg shadow-sky-600/30 border border-sky-400/40 transition flex items-center gap-1.5">
+                    <i id="fetchIcon" class="fa-solid fa-rotate"></i>
+                    <span id="fetchBtnText">Investing.com 실시간 동기화</span>
+                </button>
+                <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-xs font-medium">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span>자동 실시간 연동 중 (60초 주기)</span>
+                </div>
+                <button onclick="applyPreset('default')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                    🔄 초기 기본값
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <!-- Left Column: Input Controllers (5 cols on lg) -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="glass-card rounded-2xl p-6 shadow-xl">
+                    <div class="flex items-center justify-between mb-6 pb-3 border-b border-slate-700/60">
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-sky-400"></i>
+                            지표 수치 (Investing.com 실시간)
+                        </h2>
+                        <span id="lastUpdatedStatus" class="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                            <i class="fa-solid fa-cloud-arrow-down"></i> 실시간 반영 중...
+                        </span>
+                    </div>
+
+                    <form onsubmit="return false;" class="space-y-6">
+                        <!-- 1. 브라질 10년물 국채 금리 -->
+                        <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <label for="yieldInput" class="text-sm font-semibold text-slate-200 flex items-center gap-1.5">
+                                    <span>1. 브라질 10년물 금리</span>
+                                    <span class="text-xs font-normal text-emerald-400">(가중치 50%)</span>
+                                </label>
+                                <div class="flex items-center space-x-1 bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-1 focus-within:border-sky-500">
+                                    <input type="number" id="yieldInput" step="0.01" min="8" max="22" value="14.3" 
+                                           class="w-16 bg-transparent text-right font-bold text-sky-400 focus:outline-none text-sm">
+                                    <span class="text-xs text-slate-400 font-semibold">%</span>
+                                </div>
+                            </div>
+                            
+                            <input type="range" id="yieldSlider" min="10.0" max="18.0" step="0.05" value="14.3" class="w-full">
+
+                            <!-- Grade Indicator Thresholds -->
+                            <div class="grid grid-cols-3 gap-1 text-[11px] text-center pt-1">
+                                <div id="yieldRange1" class="py-1 px-1 rounded bg-slate-800 text-slate-400 transition-colors">
+                                    &lt; 14.1%<br><span class="text-[10px] opacity-75">(유보: 40점)</span>
+                                </div>
+                                <div id="yieldRange2" class="py-1 px-1 rounded bg-slate-800 text-slate-400 transition-colors">
+                                    14.1~14.5%<br><span class="text-[10px] opacity-75">(투자: 70점)</span>
+                                </div>
+                                <div id="yieldRange3" class="py-1 px-1 rounded bg-slate-800 text-slate-400 transition-colors">
+                                    &gt; 14.5%<br><span class="text-[10px] opacity-75">(적극: 100점)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. 원/헤알 환율 (KRW/BRL) -->
+                        <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <label for="krwBrlInput" class="text-sm font-semibold text-slate-200 flex items-center gap-1.5">
+                                    <span>2. 원/헤알 환율 (KRW/BRL)</span>
+                                    <span class="text-xs font-normal text-sky-400">(가중치 50%)</span>
+                                </label>
+                                <div class="flex items-center space-x-1 bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-1 focus-within:border-sky-500">
+                                    <input type="number" id="krwBrlInput" step="0.5" min="150" max="350" value="262.0" 
+                                           class="w-16 bg-transparent text-right font-bold text-sky-400 focus:outline-none text-sm">
+                                    <span class="text-xs text-slate-400 font-semibold">원</span>
+                                </div>
+                            </div>
+
+                            <input type="range" id="krwBrlSlider" min="220" max="300" step="0.5" value="262.0" class="w-full">
+
+                            <!-- Grade Indicator Thresholds -->
+                            <div class="grid grid-cols-3 gap-1 text-[11px] text-center pt-1">
+                                <div id="krwRange1" class="py-1 px-1 rounded bg-slate-800 text-slate-400 transition-colors">
+                                    &gt; 265원<br><span class="text-[10px] opacity-75">(유보: 40점)</span>
+                                </div>
+                                <div id="krwRange2" class="py-1 px-1 rounded bg-slate-800 text-slate-400 transition-colors">
+                                    260~265원<br><span class="text-[10px] opacity-75">(투자: 70점)</span>
+                                </div>
+                                <div id="krwRange3" class="py-1 px-1 rounded bg-slate-800 text-slate-400 transition-colors">
+                                    &lt; 260원<br><span class="text-[10px] opacity-75">(적극: 100점)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Reset & Note -->
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                        <span>💡 슬라이더 또는 숫자를 직접 변경해 보세요.</span>
+                        <button onclick="applyPreset('default')" class="hover:text-slate-200 underline flex items-center gap-1">
+                            <i class="fa-solid fa-rotate-left"></i> 리셋
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Real-time Dashboard & Strategy Output (7 cols on lg) -->
+            <div class="lg:col-span-7 space-y-6">
+
+                <!-- Main Score & Grade Display Card -->
+                <div id="mainDashboardCard" class="glass-card rounded-2xl p-6 sm:p-8 relative overflow-hidden transition-all duration-500">
+                    
+                    <!-- Background ambient glow -->
+                    <div id="ambientGlow" class="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl opacity-20 bg-emerald-500 transition-colors duration-500 pointer-events-none"></div>
+
+                    <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                        
+                        <!-- Left Gauge Section -->
+                        <div class="flex flex-col items-center justify-center space-y-2">
+                            <div class="relative w-44 h-44 flex items-center justify-center">
+                                <!-- SVG Circular Gauge -->
+                                <svg class="w-full h-full" viewBox="0 0 100 100">
+                                    <!-- Background track -->
+                                    <circle cx="50" cy="50" r="42" fill="none" stroke="#1e293b" stroke-width="8" />
+                                    <!-- Dynamic Progress stroke -->
+                                    <circle id="gaugeProgress" class="gauge-circle" cx="50" cy="50" r="42" fill="none" 
+                                            stroke="#22c55e" stroke-width="8" stroke-linecap="round" 
+                                            stroke-dasharray="263.89" stroke-dashoffset="79.16" />
+                                </svg>
+                                
+                                <!-- Center Text inside Gauge -->
+                                <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                    <span class="text-xs uppercase tracking-widest text-slate-400 font-semibold">종합 스코어</span>
+                                    <span id="totalScoreText" class="text-4xl font-black text-white tracking-tight my-0.5">70.0</span>
+                                    <span class="text-[11px] text-slate-400">/ 100점</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Grade & Summary Section -->
+                        <div class="flex-1 space-y-4 text-center md:text-left">
+                            <div>
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">최종 산출 투자 등급</span>
+                                <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-1.5">
+                                    <span id="gradeBadge" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-base font-extrabold shadow-lg transition-all duration-300">
+                                        <i id="gradeIcon" class="fa-solid fa-circle-check"></i>
+                                        <span id="gradeTitle">투자 (Moderate)</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <p id="gradeSummary" class="text-sm text-slate-300 leading-relaxed">
+                                현재 매크로 환경은 표준적인 투자 여건을 제공하고 있습니다. 적절한 분할 매수 전략이 권장됩니다.
+                            </p>
+
+                            <!-- Mini Weight Summary Breakdown -->
+                            <div class="pt-2 grid grid-cols-2 gap-3 border-t border-slate-700/60 text-center">
+                                <div class="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800">
+                                    <div class="text-[10px] text-slate-400">금리 점수 (50%)</div>
+                                    <div id="yieldSubScore" class="text-sm font-bold text-emerald-400 mt-0.5">35.0점</div>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800">
+                                    <div class="text-[10px] text-slate-400">KRW/BRL 점수 (50%)</div>
+                                    <div id="krwSubScore" class="text-sm font-bold text-sky-400 mt-0.5">35.0점</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Detailed Metric Breakdown Cards -->
+                <div class="glass-card rounded-2xl p-6 space-y-4">
+                    <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center justify-between">
+                        <span>세부 지표별 달성 현황</span>
+                        <span class="text-xs font-normal text-slate-400">가중치 50% : 50%</span>
+                    </h3>
+
+                    <div class="space-y-3.5">
+                        <!-- Metric 1: Yield -->
+                        <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                    <span class="text-xs font-bold text-slate-200">10년물 국채 금리 (50%)</span>
+                                    <span id="yieldBadge" class="px-2 py-0.5 text-[10px] font-semibold rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                        투자 (70점)
+                                    </span>
+                                </div>
+                                <p id="yieldDetailText" class="text-xs text-slate-400">현재 14.30% (적정 금리 구간에 위치)</p>
+                            </div>
+                            <div class="flex items-center space-x-3 self-end sm:self-center">
+                                <div class="w-28 bg-slate-800 h-2 rounded-full overflow-hidden">
+                                    <div id="yieldBar" class="bg-emerald-400 h-full transition-all duration-300" style="width: 70%"></div>
+                                </div>
+                                <span id="yieldPointVal" class="text-xs font-bold text-slate-200 w-12 text-right">70 / 100</span>
+                            </div>
+                        </div>
+
+                        <!-- Metric 2: KRW/BRL -->
+                        <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                                    <span class="text-xs font-bold text-slate-200">KRW / BRL 환율 (50%)</span>
+                                    <span id="krwBadge" class="px-2 py-0.5 text-[10px] font-semibold rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                        투자 (70점)
+                                    </span>
+                                </div>
+                                <p id="krwDetailText" class="text-xs text-slate-400">현재 262.00 원 (안정적 평가 구간)</p>
+                            </div>
+                            <div class="flex items-center space-x-3 self-end sm:self-center">
+                                <div class="w-28 bg-slate-800 h-2 rounded-full overflow-hidden">
+                                    <div id="krwBar" class="bg-sky-400 h-full transition-all duration-300" style="width: 70%"></div>
+                                </div>
+                                <span id="krwPointVal" class="text-xs font-bold text-slate-200 w-12 text-right">70 / 100</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy Guide Panel -->
+                <div class="glass-card rounded-2xl p-6 space-y-5">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-700/60">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-chess text-emerald-400"></i>
+                            맞춤형 포트폴리오 전략 가이드
+                        </h3>
+                        <span id="allocationBadge" class="text-xs font-extrabold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            권장 비중: 30 ~ 50%
+                        </span>
+                    </div>
+
+                    <!-- Recommended Allocation Progress Bar -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">목표 자산 배분 비중</span>
+                            <span id="allocationPercentText" class="text-emerald-400">30% ~ 50% 분할 진입</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                            <div id="allocationProgress" class="h-full bg-gradient-to-r from-emerald-500 to-sky-400 rounded-full transition-all duration-500" style="width: 40%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Action Steps Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <!-- Action Guidance -->
+                        <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+                            <div class="flex items-center space-x-2 text-sky-400 font-bold text-xs uppercase tracking-wider">
+                                <i class="fa-solid fa-compass"></i>
+                                <span>매수 수행 지침</span>
+                            </div>
+                            <ul id="actionList" class="text-xs text-slate-300 space-y-1.5 list-disc list-inside">
+                                <li>목표 금액의 30~50% 수준에서 2~3회 분할 매수 진입 권장.</li>
+                                <li>헤알화 환율 변동성을 감안하여 환율 분할 매수 병행.</li>
+                                <li>이표채(연 10% 수준 쿠폰) 재투자 전략 병행 고려.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Risk Factors -->
+                        <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+                            <div class="flex items-center space-x-2 text-rose-400 font-bold text-xs uppercase tracking-wider">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <span>핵심 리스크 점검</span>
+                            </div>
+                            <ul id="riskList" class="text-xs text-slate-300 space-y-1.5 list-disc list-inside">
+                                <li>브라질 재정 적자 우려에 따른 헤알화 가치 하락 위험.</li>
+                                <li>미국 연준(Fed) 금리 정책 변화에 따른 원자재 자금 유출.</li>
+                                <li>환차손 발생 시 원화 기준 총 수익률 감소 가능성.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Tax Exemption & Bond Investment Information Footer Banner -->
+        <section class="mt-10 glass-card rounded-2xl p-6 border border-slate-800">
+            <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-lightbulb text-amber-400"></i>
+                브라질 국채 투자 핵심 요약 (Tax & Characteristics)
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-300">
+                <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 space-y-2">
+                    <div class="font-bold text-slate-100 flex items-center gap-1.5 text-sm">
+                        <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                        한-브라질 조세조약 비과세
+                    </div>
+                    <p class="text-slate-400 leading-relaxed">
+                        양국 조세조약에 따라 브라질 국채에서 발생하는 **이자소득 및 자본차익(환차익 포함)에 대해 완전 비과세** 혜택이 적용됩니다. (금융소득종합과세 합산 제외)
+                    </p>
+                </div>
+
+                <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 space-y-2">
+                    <div class="font-bold text-slate-100 flex items-center gap-1.5 text-sm">
+                        <i class="fa-solid fa-money-bill-wave text-amber-400"></i>
+                        반기 이표 지급 (Coupon)
+                    </div>
+                    <p class="text-slate-400 leading-relaxed">
+                        주요 브라질 국채는 **연 10% 수준의 쿠폰 이자**를 매 6개월마다(1월/7월 등) 지급합니다. 지급받은 원화 이자로 재투자 시 복리 효과를 누릴 수 있습니다.
+                    </p>
+                </div>
+
+                <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 space-y-2">
+                    <div class="font-bold text-slate-100 flex items-center gap-1.5 text-sm">
+                        <i class="fa-solid fa-scale-balanced text-sky-400"></i>
+                        환율 손익 및 토빈세
+                    </div>
+                    <p class="text-slate-400 leading-relaxed">
+                        원/헤알(KRW/BRL) 환율 변동에 직접 노출되므로, 금리 상승 시의 채권 가격 하락 및 헤알화 약세 시 환차손 위험을 반드시 사전 점검해야 합니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 py-6 bg-navy-900/50 text-slate-500 text-xs text-center">
+        <div class="max-w-7xl mx-auto px-4 space-y-2">
+            <p>본 산출기는 참고용 수치 시뮬레이션 도구이며, 실제 투자 권유나 금융 자문이 아닙니다.</p>
+            <p class="text-slate-600">© 2026 Brazil Bond Investment Grade Calculator. Data links provided by Investing.com.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // DOM Elements - Inputs & Sliders
+        const yieldInput = document.getElementById('yieldInput');
+        const yieldSlider = document.getElementById('yieldSlider');
+        const krwBrlInput = document.getElementById('krwBrlInput');
+        const krwBrlSlider = document.getElementById('krwBrlSlider');
+
+        // DOM Elements - Dashboard Outputs
+        const totalScoreText = document.getElementById('totalScoreText');
+        const gaugeProgress = document.getElementById('gaugeProgress');
+        const mainDashboardCard = document.getElementById('mainDashboardCard');
+        const ambientGlow = document.getElementById('ambientGlow');
+        
+        const gradeBadge = document.getElementById('gradeBadge');
+        const gradeIcon = document.getElementById('gradeIcon');
+        const gradeTitle = document.getElementById('gradeTitle');
+        const gradeSummary = document.getElementById('gradeSummary');
+
+        // DOM Elements - Sub Score Values
+        const yieldSubScore = document.getElementById('yieldSubScore');
+        const krwSubScore = document.getElementById('krwSubScore');
+
+        // DOM Elements - Detail Metric Breakdown
+        const yieldBadge = document.getElementById('yieldBadge');
+        const yieldDetailText = document.getElementById('yieldDetailText');
+        const yieldBar = document.getElementById('yieldBar');
+        const yieldPointVal = document.getElementById('yieldPointVal');
+
+        const krwBadge = document.getElementById('krwBadge');
+        const krwDetailText = document.getElementById('krwDetailText');
+        const krwBar = document.getElementById('krwBar');
+        const krwPointVal = document.getElementById('krwPointVal');
+
+        // Range highlight boxes
+        const yieldRanges = [document.getElementById('yieldRange1'), document.getElementById('yieldRange2'), document.getElementById('yieldRange3')];
+        const krwRanges = [document.getElementById('krwRange1'), document.getElementById('krwRange2'), document.getElementById('krwRange3')];
+
+        // Strategy Guide Elements
+        const allocationBadge = document.getElementById('allocationBadge');
+        const allocationPercentText = document.getElementById('allocationPercentText');
+        const allocationProgress = document.getElementById('allocationProgress');
+        const actionList = document.getElementById('actionList');
+        const riskList = document.getElementById('riskList');
+
+        /*
+         * Score Calculation Rules:
+         * 1. 10Y Yield (가중치 50%):
+         *    < 14.1%: 40 pts
+         *    14.1% ~ 14.5%: 70 pts
+         *    > 14.5%: 100 pts
+         * 
+         * 2. KRW/BRL (가중치 50%):
+         *    > 265원: 40 pts
+         *    260원 ~ 265원: 70 pts
+         *    < 260원: 100 pts
+         */
+
+        function calcYieldScore(val) {
+            if (val < 14.1) {
+                return { score: 40, label: '투자유보', statusIdx: 0, desc: '14.1% 미만 (상대적 저금리, 유인 부족)' };
+            } else if (val <= 14.5) {
+                return { score: 70, label: '투자', statusIdx: 1, desc: '14.1% ~ 14.5% (적정 금리 매력도 구간)' };
+            } else {
+                return { score: 100, label: '적극투자', statusIdx: 2, desc: '14.5% 초과 (매우 높은 고금리 쿠폰 매력)' };
+            }
+        }
+
+        function calcKrwScore(val) {
+            if (val > 265) {
+                return { score: 40, label: '투자유보', statusIdx: 0, desc: '265원 초과 (원화 대비 고평가, 환차손 위험)' };
+            } else if (val >= 260) {
+                return { score: 70, label: '투자', statusIdx: 1, desc: '260원 ~ 265원 (적정 원/헤알 진입 구간)' };
+            } else {
+                return { score: 100, label: '적극투자', statusIdx: 2, desc: '260원 미만 (원화 대비 저평가, 최적 매수 조건)' };
+            }
+        }
+
+        // Highlight active range box below sliders
+        function updateRangeHighlights(elements, activeIdx) {
+            elements.forEach((el, idx) => {
+                if (idx === activeIdx) {
+                    el.className = 'py-1 px-1 rounded font-bold text-white bg-slate-700 border border-sky-500/50 shadow-sm transition-colors';
+                } else {
+                    el.className = 'py-1 px-1 rounded bg-slate-900/60 text-slate-500 transition-colors';
+                }
+            });
+        }
+
+        function calculateAndRender() {
+            // Read input values
+            const yieldVal = parseFloat(yieldInput.value) || 0;
+            const krwVal = parseFloat(krwBrlInput.value) || 0;
+
+            // Get individual metric analysis
+            const yieldRes = calcYieldScore(yieldVal);
+            const krwRes = calcKrwScore(krwVal);
+
+            // Update range highlight boxes
+            updateRangeHighlights(yieldRanges, yieldRes.statusIdx);
+            updateRangeHighlights(krwRanges, krwRes.statusIdx);
+
+            // Calculate weighted score (100 pts max: 50% + 50%)
+            const weightedScore = (yieldRes.score * 0.5) + (krwRes.score * 0.5);
+            const formattedScore = weightedScore.toFixed(1);
+
+            // Update Score Display Text
+            totalScoreText.innerText = formattedScore;
+
+            // SVG Circular Gauge Update
+            const circumference = 263.89;
+            const offset = circumference - (weightedScore / 100) * circumference;
+            gaugeProgress.style.strokeDashoffset = offset;
+
+            // Update Breakdown Subscores
+            yieldSubScore.innerText = `${(yieldRes.score * 0.5).toFixed(1)}점`;
+            krwSubScore.innerText = `${(krwRes.score * 0.5).toFixed(1)}점`;
+
+            // Update Breakdown Cards
+            updateBreakdownItem(yieldBadge, yieldDetailText, yieldBar, yieldPointVal, yieldRes, yieldVal, '%');
+            updateBreakdownItem(krwBadge, krwDetailText, krwBar, krwPointVal, krwRes, krwVal, ' 원');
+
+            // Grade Categorization & Theme Application
+            if (weightedScore >= 85) {
+                // 적극투자 (Aggressive) - Green
+                applyGradeTheme({
+                    title: '적극투자 (Aggressive)',
+                    badgeClass: 'bg-emerald-500 text-slate-950 shadow-emerald-500/30',
+                    iconClass: 'fa-solid fa-rocket',
+                    strokeColor: '#22c55e',
+                    glowColor: 'bg-emerald-500',
+                    summary: '매크로 환경이 매우 우수합니다! 브라질 고금리 쿠폰 이자와 원/헤알 환차익을 동시에 노릴 수 있는 최적의 진입 시점입니다.',
+                    allocText: '권장 비중: 70 ~ 100%',
+                    allocPercentStr: '70% ~ 100% (적극 매수)',
+                    allocBarWidth: '90%',
+                    allocBadgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+                    actions: [
+                        '목표 투자금액의 70~100%를 적극 집행 고려.',
+                        '10년물 장기채 편입을 통한 고금리 이자 소득 장기 확정.',
+                        '반기 이표 지급액 원화 환전 또는 재투자 플랜 가동.'
+                    ],
+                    risks: [
+                        '급격한 글로벌 리스크 발생 시 일시적 변동성 유의.',
+                        '브라질 중앙은행 금리 결정 주기 및 환율 수급 점검.',
+                        '원화 가치 변동에 따른 기회비용 평가.'
+                    ]
+                });
+            } else if (weightedScore >= 55) {
+                // 투자 (Moderate) - Orange/Yellow
+                applyGradeTheme({
+                    title: '투자 (Moderate)',
+                    badgeClass: 'bg-amber-500 text-slate-950 shadow-amber-500/30',
+                    iconClass: 'fa-solid fa-chart-pie',
+                    strokeColor: '#f59e0b',
+                    glowColor: 'bg-amber-500',
+                    summary: '표준적인 투자 매력도를 나타냅니다. 위험 관리를 위해 한 번에 전액 진입하기보다는 2~3회에 걸친 분할 매수가 권장됩니다.',
+                    allocText: '권장 비중: 30 ~ 50%',
+                    allocPercentStr: '30% ~ 50% (분할 매수)',
+                    allocBarWidth: '45%',
+                    allocBadgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+                    actions: [
+                        '목표 금액의 30~50% 수준으로 분할 매수 진입.',
+                        '환율 및 금리 변동성에 따라 추가 조정 시 단계별 비중 확대.',
+                        '쿠폰 이자 수령 후 환율 상황에 맞춘 원화 환전 조절.'
+                    ],
+                    risks: [
+                        '원/헤알 환율 추가 변동성에 따른 단기 평가손실 위험.',
+                        '브라질 정부 재정 적자 이슈 모니터링.',
+                        '글로벌 통화 정책에 따른 신흥국 자금 유출입 추이.'
+                    ]
+                });
+            } else {
+                // 투자유보 (Caution) - Red
+                applyGradeTheme({
+                    title: '투자유보 (Caution)',
+                    badgeClass: 'bg-rose-500 text-white shadow-rose-500/30',
+                    iconClass: 'fa-solid fa-triangle-exclamation',
+                    strokeColor: '#ef4444',
+                    glowColor: 'bg-rose-500',
+                    summary: '현재 지표 기준 투자 매력도가 낮습니다. 신규 진입을 자제하고 진입 시점을 재검토하는 것이 좋습니다.',
+                    allocText: '권장 비중: 0 ~ 20% (보수적)',
+                    allocPercentStr: '0% ~ 20% (신규 진입 자제)',
+                    allocBarWidth: '15%',
+                    allocBadgeClass: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+                    actions: [
+                        '신규 매수를 자제하고 주요 지표 개선 시까지 관망.',
+                        '기존 보유자의 경우 비중 축소 또는 리밸런싱 검토.',
+                        '금리 14.1% 이상 또는 원/헤알 265원 이하 도달 시 재평가.'
+                    ],
+                    risks: [
+                        '환차손 발생에 따른 원화 기준 총 자산 감소 위험.',
+                        '낮은 금리 프리미엄 대비 신흥국 신용 위험 증대.',
+                        '원/헤알 환율 추가 상승 시 매수 부담 증가.'
+                    ]
+                });
+            }
+        }
+
+        function updateBreakdownItem(badgeEl, descEl, barEl, pointEl, resObj, currentVal, unit) {
+            descEl.innerText = `현재 ${currentVal}${unit} (${resObj.desc})`;
+            pointEl.innerText = `${resObj.score} / 100`;
+            barEl.style.width = `${resObj.score}%`;
+
+            if (resObj.score === 100) {
+                badgeEl.className = 'px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+                badgeEl.innerText = `적극투자 (${resObj.score}점)`;
+                barEl.className = 'bg-emerald-400 h-full transition-all duration-300';
+            } else if (resObj.score === 70) {
+                badgeEl.className = 'px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/20 text-amber-300 border border-amber-500/30';
+                badgeEl.innerText = `투자 (${resObj.score}점)`;
+                barEl.className = 'bg-amber-400 h-full transition-all duration-300';
+            } else {
+                badgeEl.className = 'px-2 py-0.5 text-[10px] font-bold rounded bg-rose-500/20 text-rose-300 border border-rose-500/30';
+                badgeEl.innerText = `투자유보 (${resObj.score}점)`;
+                barEl.className = 'bg-rose-500 h-full transition-all duration-300';
+            }
+        }
+
+        function applyGradeTheme(config) {
+            gradeBadge.className = `inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-base font-extrabold shadow-lg transition-all duration-300 ${config.badgeClass}`;
+            gradeIcon.className = config.iconClass;
+            gradeTitle.innerText = config.title;
+            gradeSummary.innerText = config.summary;
+
+            gaugeProgress.setAttribute('stroke', config.strokeColor);
+            ambientGlow.className = `absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl opacity-20 transition-colors duration-500 pointer-events-none ${config.glowColor}`;
+
+            // Strategy Guide Updates
+            allocationBadge.className = `text-xs font-extrabold px-3 py-1 rounded-full border ${config.allocBadgeClass}`;
+            allocationBadge.innerText = config.allocText;
+            allocationPercentText.innerText = config.allocPercentStr;
+            allocationProgress.style.width = config.allocBarWidth;
+
+            // Render Bullet Points
+            actionList.innerHTML = config.actions.map(act => `<li>${act}</li>`).join('');
+            riskList.innerHTML = config.risks.map(r => `<li>${r}</li>`).join('');
+        }
+
+        // Gemini API Real-time Search Grounding for Investing.com
+        async function fetchLiveMarketData() {
+            const fetchBtn = document.getElementById('fetchLiveBtn');
+            const fetchIcon = document.getElementById('fetchIcon');
+            const fetchBtnText = document.getElementById('fetchBtnText');
+            const statusTag = document.getElementById('lastUpdatedStatus');
+
+            if (fetchBtn) fetchBtn.disabled = true;
+            if (fetchIcon) fetchIcon.className = 'fa-solid fa-spinner fa-spin';
+            if (fetchBtnText) fetchBtnText.innerText = 'Investing.com 시세 수집 중...';
+
+            statusTag.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Investing.com 수치 불러오는 중...`;
+            statusTag.className = 'text-xs text-sky-400 font-semibold bg-sky-500/10 px-2.5 py-1 rounded-full border border-sky-500/30';
+
+            try {
+                // Optimized search prompt specifically targeting Investing.com real-time metrics
+                const systemPrompt = "You are a real-time financial market data extractor. Perform a search to extract the exact current market figures from Investing.com for: 1) Brazil 10-Year Government Bond Yield (percentage number, e.g., 14.3) and 2) KRW/BRL exchange rate (Korean Won per Brazilian Real, e.g., 262.0). Output strictly JSON without markdown backticks or extra explanation. JSON format MUST be: {\"brazil10yYield\": 14.3, \"krwBrlRate\": 262.0}";
+                const userQuery = "Investing.com Brazil 10 Year Bond Yield current rate and KRW/BRL exchange rate real time";
+                const apiKey = ""; // Canvas runtime automatically supplies API key
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    tools: [{ "google_search": {} }],
+                    systemInstruction: {
+                        parts: [{ text: systemPrompt }]
+                    }
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const candidateText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (candidateText) {
+                    const jsonMatch = candidateText.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        const parsed = JSON.parse(jsonMatch[0]);
+                        let updated = false;
+
+                        if (parsed.brazil10yYield && !isNaN(parsed.brazil10yYield)) {
+                            const yVal = parseFloat(parsed.brazil10yYield).toFixed(2);
+                            yieldInput.value = yVal;
+                            yieldSlider.value = yVal;
+                            updated = true;
+                        }
+                        if (parsed.krwBrlRate && !isNaN(parsed.krwBrlRate)) {
+                            const kVal = parseFloat(parsed.krwBrlRate).toFixed(1);
+                            krwBrlInput.value = kVal;
+                            krwBrlSlider.value = kVal;
+                            updated = true;
+                        }
+
+                        const now = new Date();
+                        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
+                        if (updated) {
+                            statusTag.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Investing.com 실시간 반영 완료 (${timeStr})`;
+                            statusTag.className = 'text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/30';
+                        } else {
+                            statusTag.innerText = `Investing.com 동기화 유지 (${timeStr})`;
+                        }
+                        calculateAndRender();
+                    }
+                }
+            } catch (err) {
+                console.warn('Realtime fetch failed or throttled, using current values:', err);
+                const now = new Date();
+                const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                statusTag.innerHTML = `<i class="fa-solid fa-clock"></i> 기존 수치 유지 중 (${timeStr})`;
+                statusTag.className = 'text-xs text-amber-400 font-semibold bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/30';
+            } finally {
+                if (fetchBtn) fetchBtn.disabled = false;
+                if (fetchIcon) fetchIcon.className = 'fa-solid fa-rotate';
+                if (fetchBtnText) fetchBtnText.innerText = 'Investing.com 실시간 동기화';
+            }
+        }
+
+        // Synchronize Slider and Number Input
+        function bindInputAndSlider(inputEl, sliderEl) {
+            inputEl.addEventListener('input', () => {
+                sliderEl.value = inputEl.value;
+                calculateAndRender();
+            });
+
+            sliderEl.addEventListener('input', () => {
+                inputEl.value = sliderEl.value;
+                calculateAndRender();
+            });
+        }
+
+        // Preset Scenarios Handler
+        function applyPreset(type) {
+            if (type === 'aggressive') {
+                // 적극매수 시나리오 (금리>14.5%, KRW/BRL<260)
+                yieldInput.value = 14.8;
+                yieldSlider.value = 14.8;
+                krwBrlInput.value = 255.0;
+                krwBrlSlider.value = 255.0;
+            } else if (type === 'caution') {
+                // 보수적 시나리오 (금리<14.1%, KRW/BRL>265)
+                yieldInput.value = 13.8;
+                yieldSlider.value = 13.8;
+                krwBrlInput.value = 272.0;
+                krwBrlSlider.value = 272.0;
+            } else {
+                // 기본 세팅값 (금리 14.3%, KRW/BRL 262원)
+                yieldInput.value = 14.3;
+                yieldSlider.value = 14.3;
+                krwBrlInput.value = 262.0;
+                krwBrlSlider.value = 262.0;
+            }
+            calculateAndRender();
+        }
+
+        // Window Load Event Initialization
+        window.onload = function() {
+            bindInputAndSlider(yieldInput, yieldSlider);
+            bindInputAndSlider(krwBrlInput, krwBrlSlider);
+
+            // Initial calculation
+            calculateAndRender();
+
+            // Automatically fetch live Investing.com data on page load
+            fetchLiveMarketData();
+
+            // Auto periodic refresh every 60 seconds
+            setInterval(() => {
+                fetchLiveMarketData();
+            }, 60000);
+        };
+    </script>
+</body>
+</html>
